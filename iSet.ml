@@ -63,7 +63,7 @@ let rec merge t1 t2 =
         else
             node (merge (Node t1) t2.l) t2.r t2.interval t2.key
 
-let split pred t = 
+let halve pred t = 
     let rec loop = function
         | Null -> Null, Null
         | Node t ->
@@ -77,9 +77,9 @@ let split pred t =
 
 let divide (x, y) t = 
     let tmp_pred (tx, ty) = (x = min_int) || (ty >= x - 1) in
-    let l, tmp_right = split tmp_pred t in
+    let l, tmp_right = halve tmp_pred t in
     let tmp_pred (tx, ty) = not ((y = max_int) || (tx <= x + 1)) in
-    let m, r = split tmp_pred tmp_right in
+    let m, r = halve tmp_pred tmp_right in
     l, m, r
 
 let rec first = function
@@ -105,6 +105,17 @@ let remove (x, y) t =
         else create_leaf (y + 1) (last m) in
     merge (merge l m1) (merge m2 r)
 
+let split s t = 
+    let (x, y) = (s, s) in
+    let l, m, r = divide (x, y) t in
+    let m1 = 
+        if x = min_int then Null
+        else create_leaf (first m) (x - 1) in 
+    let m2 = 
+        if y = max_int then Null
+        else create_leaf (y + 1) (last m) in
+    merge l m1, not (is_empty m), merge m2 r
+
 let mem s t = 
     let rec loop = function
         | Null -> false
@@ -124,8 +135,8 @@ let below s t =
     if is_real_zero then 0 else
     if sum <= 0 then max_int else
     sum
-        
-let fold f a t =
+
+let fold f t a=
     let rec loop a = function
         | Null -> a
         | Node t -> loop (f t.interval (loop a t.l)) t.r in
@@ -133,4 +144,8 @@ let fold f a t =
 
 let iter f t =
     let tmp_f interval () = f interval in 
-    fold tmp_f () t
+    fold tmp_f t ()
+
+let elements t = 
+    let tmp_f interval lst = interval :: lst in
+    fold tmp_f t [] |> List.rev 
