@@ -50,7 +50,7 @@ let sum = function
     | Node t -> t.sum
 
 let node l r (x, y) key = 
-    Node { l = l; r = r; interval = (x, y); key = Rand.get (); sum = y - x + 1 + (sum l) + (sum r) }
+    Node { l = l; r = r; interval = (x, y); key = key; sum = y - x + 1 + (sum l) + (sum r) }
 
 let rec merge t1 t2 =
     match t1, t2 with
@@ -59,9 +59,9 @@ let rec merge t1 t2 =
         let key1 = t1.key in
         let key2 = t2.key in
         if key1 < key2 then 
-            node t1.l (merge t1.r (Node t2)) t1.interval t1.key
+            node t1.l (merge t1.r (Node t2)) t1.interval key1
         else
-            node (merge (Node t1) t2.l) t2.r t2.interval t2.key
+            node (merge (Node t1) t2.l) t2.r t2.interval key2
 
 let halve pred t = 
     let rec loop = function
@@ -78,7 +78,7 @@ let halve pred t =
 let divide (x, y) t = 
     let tmp_pred (tx, ty) = (x = min_int) || (ty >= x - 1) in
     let l, tmp_right = halve tmp_pred t in
-    let tmp_pred (tx, ty) = not ((y = max_int) || (tx <= x + 1)) in
+    let tmp_pred (tx, ty) = not ((y = max_int) || (tx <= y + 1)) in
     let m, r = halve tmp_pred tmp_right in
     l, m, r
 
@@ -88,12 +88,12 @@ let rec first = function
 
 let rec last = function
     | Null -> min_int
-    | Node t -> max (snd t.interval) (last t.l)
+    | Node t -> max (snd t.interval) (last t.r)
 
 let add (x, y) t = 
     let l, m, r = divide (x, y) t in
-    let m = create_leaf (min (first m) x) (max (last m) y) in
-    merge l (merge m r)
+    let new_m = create_leaf (min (first m) x) (max (last m) y) in
+    merge l (merge new_m r)
 
 let remove (x, y) t = 
     let l, m, r = divide (x, y) t in
@@ -105,6 +105,15 @@ let remove (x, y) t =
         else create_leaf (y + 1) (last m) in
     merge (merge l m1) (merge m2 r)
 
+let mem s t = 
+    let rec loop = function
+        | Null -> false
+        | Node t -> 
+            if (snd t.interval) < s then loop t.r else
+            if (fst t.interval) > s then loop t.l else
+            true in
+    loop t
+
 let split s t = 
     let (x, y) = (s, s) in
     let l, m, r = divide (x, y) t in
@@ -114,16 +123,7 @@ let split s t =
     let m2 = 
         if y = max_int then Null
         else create_leaf (y + 1) (last m) in
-    merge l m1, not (is_empty m), merge m2 r
-
-let mem s t = 
-    let rec loop = function
-        | Null -> false
-        | Node t -> 
-            if (snd t.interval) < s then loop t.l else
-            if (fst t.interval) > s then loop t.r else
-            true in
-    loop t
+    merge l m1, mem s m, merge m2 r
 
 let below s t = 
     let l, m, _ = divide (s, s) t in
