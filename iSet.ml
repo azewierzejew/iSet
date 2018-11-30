@@ -159,7 +159,7 @@ let split s t =
 (* returns number of elements smaller than [s] in [t] or max_int if number is too big *)
 let below s t =
     let tmp_pred (x, y) = x > s in
-    let l, _ = halve tmp_pred t in (* KUUUUUUUUUUUUUUUUUUUUUUUUUUUUUURWA *)
+    let l, _ = halve tmp_pred t in
     (* number of numbers not bigger than [s] is non-negative                          *)
     (* [sum] is an integer and overflows so numbers smaller than 0                    *)
     (* represent numbers bigger than max_int, with exception of zero                  *)
