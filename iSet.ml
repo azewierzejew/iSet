@@ -158,19 +158,16 @@ let split s t =
 
 (* returns number of elements smaller than [s] in [t] or max_int if number is too big *)
 let below s t =
-    let l, m, _ = divide (s, s) t in
+    let tmp_pred (x, y) = x > s in
+    let l, _ = halve tmp_pred t in (* KUUUUUUUUUUUUUUUUUUUUUUUUUUUUUURWA *)
     (* number of numbers not bigger than [s] is non-negative                          *)
     (* [sum] is an integer and overflows so numbers smaller than 0                    *)
-    (* represent numbers bigger than max_int                                          *)
+    (* represent numbers bigger than max_int, with exception of zero                  *)
     (* zero can be achieved in two ways: all or none of possible integers are smaller *)
-    let sum, is_real_zero =
-        match l, m with
-        | Null, Null -> 0, true
-        | t, Null -> sum t, false
-        | _, Node t -> s - (fst t.interval) + 1 + (sum l), false in
-    if is_real_zero then 0 else
-    if sum <= 0 then max_int else
-    sum
+    if l = empty then 0 else
+    let y = last l in
+    let tmp = if s < y then (sum l) - (y - s) else sum l in
+    if tmp <= 0 then max_int else tmp
 
 (* [fold f t a] computes [(f xN ... (f x2 (f x1 a))...)],    *)
 (* where x1 xN are all intervals of [t], in increasing order *)
