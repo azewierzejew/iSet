@@ -1,3 +1,6 @@
+(* Author: Antoni Żewierżejew *)
+(* Reviewer: Juliusz Pham *)
+
 (*
  * ISet - Interval sets
  * Copyright (C) 1996-2003 Xavier Leroy, Nicolas Cannasse, Markus Mottl,
