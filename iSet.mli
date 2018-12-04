@@ -1,6 +1,7 @@
 (*
  * ISet - Interval sets
- * Copyright (C) 1996-2003 Xavier Leroy, Nicolas Cannasse, Markus Mottl, Jacek Chrzaszcz, Antoni Żewierżejew
+ * Copyright (C) 1996-2003 Xavier Leroy, Nicolas Cannasse, Markus Mottl,
+ * Jacek Chrzaszcz, Antoni Żewierżejew
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *)
 
-(** Interval Set.
+(* Interval Set.
 
     This is an interval set, i.e. a set of integers, where large
     intervals can be stored as single elements. Intervals stored in the
