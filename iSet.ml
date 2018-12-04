@@ -30,6 +30,7 @@ module Rand : (sig val get : unit -> int end) = struct
     let get () = Int64.to_int (Random.int64 int64_of_max_int)
 end
 
+
 (*
     type representing interval set as treap tree
     interval is defined as (x, y) where x, y are its ends (inclusive), [x <= y] holds
@@ -51,30 +52,37 @@ end
 type node = { l: tree; r: tree; interval: int * int; key: int; sum: int }
 and tree = Null | Node of node
 
+
 (* renaming of type tree to fit iSet.mli *)
 type t = tree
+
 
 (* constant representing empty interval set *)
 let empty = Null
 
+
 (* returns [true] if [t] is empty intreval set, [false] otherwise *)
 let is_empty t = (t = empty)
+
 
 (* return sum of interval lenghts in subtree of [t] *)
 let sum = function
     | Null -> 0
     | Node t -> t.sum
 
+
 (* returns interval set containing only interval (x, y) or empty set if [x > y] *)
 let create_leaf x y =
     if x > y then empty else
     Node { l = Null; r = Null; interval = (x, y); key = Rand.get (); sum = y - x + 1 }
+
 
 (* constructs set when given proper parameters                       *)
 (* init. cond: x <= y; (intervals of l) < (x, y) < (intervals of r); *)
 (* [key] is not bigger than keys of [l] and [r] (if they exist)      *)
 let node l r (x, y) key =
     Node { l = l; r = r; interval = (x, y); key = key; sum = y - x + 1 + (sum l) + (sum r) }
+
 
 (* return interval set containg all intervals from [l] and [r] *)
 (* init. cond: (intervals of t1) < (intervals of t2)           *)
@@ -86,6 +94,7 @@ let rec merge t1 t2 =
             node t1.l (merge t1.r (Node t2)) t1.interval t1.key
         else
             node (merge (Node t1) t2.l) t2.r t2.interval t2.key
+
 
 (* given predicate [pred], returns (set of intervals fulfilling [pred], set of rest of intervals) *)
 (* init. cond: ((pred interval1) && (interval1 < interval2)) implies (pred interval2)             *)
@@ -101,6 +110,7 @@ let halve pred t =
                 node t.l tmp1 t.interval t.key, tmp2 in
     loop t
 
+
 (* given interval (x, y) divides t into three sets. first one contains intervals strictly *)
 (* smaller, third one contains those strictly bigger and second one containing the rest   *)
 (* init. cond: x <= y                                                                     *)
@@ -111,21 +121,25 @@ let divide (x, y) t =
     let m, r = halve tmp_pred tmp_right in
     l, m, r
 
+
 (* returns first number in interval set, [max_int] if set is empty *)
 let rec first = function
     | Null -> max_int
     | Node t -> min (fst t.interval) (first t.l)
+
 
 (* returns last number in interval set, [min_int] if set is empty *)
 let rec last = function
     | Null -> min_int
     | Node t -> max (snd t.interval) (last t.r)
 
+
 (* returns [t] with added interval (x, y) init. cond: x <= y *)
 let add (x, y) t =
     let l, m, r = divide (x, y) t in
     let new_m = create_leaf (min (first m) x) (max (last m) y) in
     merge l (merge new_m r)
+
 
 (* returns [t] with removed interval (x, y) init. cond: x <= y *)
 let remove (x, y) t =
@@ -138,6 +152,7 @@ let remove (x, y) t =
         else create_leaf (y + 1) (last m) in
     merge (merge l m1) (merge m2 r)
 
+
 (* returns [true] if [s] is in any interval of [t], [false] otherwise *)
 let mem s t =
     let rec loop = function
@@ -147,6 +162,7 @@ let mem s t =
             if (fst t.interval) > s then loop t.l else
             true in
     loop t
+
 
 (* returns (set of values in [t] < [s], [mem s t], set of values in [t] > [s]) *)
 let split s t =
@@ -159,6 +175,7 @@ let split s t =
         if y = max_int then Null
         else create_leaf (y + 1) (last m) in
     merge l m1, mem s m, merge m2 r
+
 
 (* returns number of elements not bigger than [s] in [t] or [max_int] if number is too big *)
 let below s t =
@@ -173,6 +190,7 @@ let below s t =
     let tmp = if s < y then (sum l) - (y - s) else sum l in
     if tmp <= 0 then max_int else tmp
 
+
 (* [fold f t a] computes [(f xN ... (f x2 (f x1 a))...)],    *)
 (* where x1 xN are all intervals of [t], in increasing order *)
 let fold f t a =
@@ -181,10 +199,12 @@ let fold f t a =
         | Node t -> loop (f t.interval (loop a t.l)) t.r in
     loop a t
 
+
 (* iterates f on all intervals from [t] in increasing order *)
 let iter f t =
     let tmp_f interval () = f interval in
     fold tmp_f t ()
+
 
 (* returns list of all intervals from [t] in increasing order *)
 let elements t =
